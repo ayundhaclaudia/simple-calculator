@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  calculator:
+    build: .
+    container_name: simple-calculator
+    ports:
+      - "5000:5000"
+    networks:
+      - jenkins-net
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins-docker
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - jenkins-net
+
+networks:
+  jenkins-net:
+
+volumes:
+  jenkins_home:
