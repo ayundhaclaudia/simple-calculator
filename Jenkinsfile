@@ -1,39 +1,50 @@
 pipeline {
-  agent any
-  environment {
-    IMAGE_NAME = 'yourusername/simple-calculator'
-    REGISTRY = 'https://index.docker.io/v1/'
-    REGISTRY_CREDENTIALS = 'dockerhub-credentials'
-  }
-  stages {
-    stage('Checkout') {
-      steps { checkout scm }
+    agent any
+    environment {
+        IMAGE_NAME = 'yourdockerhubusername/simple-calculator'
+        REGISTRY_CREDENTIALS = 'dockerhub-credentials'
     }
-    stage('Build') {
-      steps {
-        sh 'echo "Mulai build kalkulator sederhana"'
-      }
-    }
-    stage('Build Docker Image') {
-      steps {
-        script {
-          docker.build("${IMAGE_NAME}:${env.BUILD_NUMBER}")
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
         }
-      }
-    }
-    stage('Push Docker Image') {
-      steps {
-        script {
-          docker.withRegistry(REGISTRY, REGISTRY_CREDENTIALS) {
-            def tag = "${IMAGE_NAME}:${env.BUILD_NUMBER}"
-            docker.image(tag).push()
-            docker.image(tag).push('latest')
-          }
+
+        stage('Build') {
+            steps {
+                bat 'echo "Build kalkulator sederhana di Windows"'
+            }
         }
-      }
+
+        stage('Unit Test') {
+            steps {
+                // Jalankan semua file test di folder tests
+                bat 'python -m unittest discover -s tests || exit 1'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ."
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    bat 'docker login -u %USER% -p %PASS%'
+                    bat "docker push %IMAGE_NAME%:%BUILD_NUMBER%"
+                    bat "docker tag %IMAGE_NAME%:%BUILD_NUMBER% %IMAGE_NAME%:latest"
+                    bat "docker push %IMAGE_NAME%:latest"
+                }
+            }
+        }
     }
-  }
-  post {
-    always { echo 'Selesai build kalkulator sederhana' }
-  }
+
+    post {
+        always {
+            echo 'Pipeline selesai dijalankan di Windows 🎯'
+        }
+    }
 }
