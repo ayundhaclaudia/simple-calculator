@@ -10,26 +10,21 @@ pipeline {
                 checkout scm
             }
         }
-
         stage('Build') {
             steps {
                 bat 'echo "Build kalkulator sederhana di Windows"'
             }
         }
-
         stage('Unit Test') {
             steps {
-                // Jalankan semua file test di folder tests
                 bat 'python -m unittest discover -s tests || exit 1'
             }
         }
-
         stage('Build Docker Image') {
             steps {
                 bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ."
             }
         }
-
         stage('Push Docker Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
@@ -41,10 +36,9 @@ pipeline {
             }
         }
     }
-
     post {
         always {
-            echo 'Pipeline selesai dijalankan di Windows 🎯'
+            echo 'Pipeline selesai dijalankan'
         }
     }
 }
